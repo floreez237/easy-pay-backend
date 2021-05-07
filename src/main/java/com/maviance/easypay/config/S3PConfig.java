@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.maviance.s3pjavaclient.ApiClient;
 import org.maviance.s3pjavaclient.api.ChecksApi;
 import org.maviance.s3pjavaclient.api.CollectionApi;
+import org.maviance.s3pjavaclient.api.HistoryApi;
 import org.maviance.s3pjavaclient.api.MasterdataApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -46,6 +47,13 @@ public class S3PConfig {
     public ChecksApi checksApi(ApiClient apiClient) {
         return new ChecksApi(apiClient);
     }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public HistoryApi historyApi(ApiClient apiClient) {
+        return new HistoryApi(apiClient);
+    }
+
 
     @Bean
     public CommandLineRunner runner(ApiClient apiClient, Checks checks) {

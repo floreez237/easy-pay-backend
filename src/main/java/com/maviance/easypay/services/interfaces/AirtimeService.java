@@ -1,7 +1,7 @@
 package com.maviance.easypay.services.interfaces;
 
-import com.maviance.easypay.commands.AirtimeCmd;
+import com.maviance.easypay.commands.AirtimePaymentCmd;
 
 public interface AirtimeService {
-    String executeTopup(AirtimeCmd airtimeCmd);
+    String executeTopup(AirtimePaymentCmd airtimeCmd, String sourcePTN);
 }

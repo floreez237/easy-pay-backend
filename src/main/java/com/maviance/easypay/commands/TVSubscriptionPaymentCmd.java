@@ -7,11 +7,12 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = false)
 @Getter
-public class BillPaymentCmd extends BasePaymentCmd {
-    private final String contractNumber;
+public class TVSubscriptionPaymentCmd extends BasePaymentCmd {
+    private final String planId;
 
-    public BillPaymentCmd(String destination, String destinationServiceNumber, Float amount, String contractNumber) {
+
+    public TVSubscriptionPaymentCmd(String destination, String destinationServiceNumber, Float amount, String planId) {
         super(destination, destinationServiceNumber, amount);
-        this.contractNumber = contractNumber;
+        this.planId = planId;
     }
 }
