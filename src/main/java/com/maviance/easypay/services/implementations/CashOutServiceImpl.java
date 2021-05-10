@@ -50,7 +50,7 @@ public class CashOutServiceImpl implements CashOutService {
     }
     private String s3pCashOut(Request request, CashOutCommand airtimeCmd) throws ApiException {
         Set<Service> services = Constants.services;
-        Integer destinationServiceId = services.stream()
+        Integer sourceServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.CASHOUT
                         && service.getTitle().toLowerCase().contains(airtimeCmd.getSource().toLowerCase()))
                 .mapToInt(Service::getServiceid).findFirst()
@@ -58,15 +58,15 @@ public class CashOutServiceImpl implements CashOutService {
                     log.error("No Service with name {}.",airtimeCmd.getSource());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
-        Cashout cashout = collectionApi.cashoutGet(destinationServiceId).get(0);
-        log.info("Initiating Quote Request for Cash in");
+        Cashout cashout = collectionApi.cashoutGet(sourceServiceId).get(0);
+        log.info("Initiating Quote Request for Cash out");
         QuoteRequest quoteRequest = new QuoteRequest();
         quoteRequest.setAmount(airtimeCmd.getAmountWithFee());
         quoteRequest.setPayItemId(cashout.getPayItemId());
         Quotestd offer = collectionApi.quotestdPost(quoteRequest);
-        log.info("Successful Quote Cash In Request");
+        log.info("Successful Quote Cash Out Request");
         log.info("{}", offer);
-        log.info("Initiating Collection for Cash In");
+        log.info("Initiating Collection for Cash Out");
         CollectionstdRequest collection = new CollectionstdRequest();
         collection.setCustomerPhonenumber(phoneNumber);
         collection.setCustomerEmailaddress(email);
@@ -74,7 +74,7 @@ public class CashOutServiceImpl implements CashOutService {
         collection.setServiceNumber("" + airtimeCmd.getSourceServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
-        log.info("Collection Cash In Successful");
+        log.info("Collection Cash Out Successful");
         request.setSourcePTN(payment.getPtn());
         requestRepo.save(request);
         return payment.getPtn();
@@ -94,7 +94,7 @@ public class CashOutServiceImpl implements CashOutService {
             log.error("S3P is not Online.");
             throw new CustomException("Server not Available", HttpStatus.SERVICE_UNAVAILABLE);
         } catch (ApiException e) {
-            log.error(e.getMessage());
+            log.error(e.getResponseBody());
             throw new CustomException("Error Occurred during verification", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
