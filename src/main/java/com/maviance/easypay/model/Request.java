@@ -19,17 +19,19 @@ public class Request {
     @GeneratedValue
     @Column(name = "request_id")
     private UUID requestId;
-    private Float fees;
-    @CreatedDate
+//    @CreatedDate
     @Column(name = "date_created")
-    private Date dateCreated;
+    private Date dateCreated = new Date();
     private String source;
     @Column(name = "source_service_number")
     private String sourceServiceNumber;
+    @Column(name = "amount_debited_from_source")
+    private Float amountDebitedFromSource;
     private String destination;
     @Column(name = "destination_service_number")
     private String destinationServiceNumber;
-    private Float amount;
+    @Column(name = "amount_credited_in_destination")
+    private Float amountCreditedInDestination;
     private String sourcePTN;
     private String destinationPTN;
     @Enumerated(EnumType.STRING)
@@ -41,11 +43,11 @@ public class Request {
     private CardDetails sourceCardDetails;
 
     public enum Status {
-        SUCCESS, PENDING, ERROR;
+        SUCCESS, PENDING, ERROR,REIMBURSED;
     }
 
     public void configWithPaymentCommand(BasePaymentCmd command) {
-        amount = command.getAmount();
+        amountDebitedFromSource = command.getAmount();
         destination = command.getDestination();
         destinationServiceNumber = command.getDestinationServiceNumber();
 
@@ -55,6 +57,7 @@ public class Request {
         source = cashOutCommand.getSource();
         sourceServiceNumber = cashOutCommand.getSourceServiceNumber();
         sourceCardDetails = cashOutCommand.getSourceCardDetails();
+        amountDebitedFromSource = cashOutCommand.getAmountWithFee();
     }
 
 }

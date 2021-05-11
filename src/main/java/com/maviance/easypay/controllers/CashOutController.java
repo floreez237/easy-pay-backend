@@ -18,6 +18,7 @@ public class CashOutController {
     }
 
     @PostMapping
+//    @CrossOrigin
     public String cashOut(@RequestParam Map<String, String> cashOutCommandMap) {
         CardDetails sourceCardDetails = null;
         if (cashOutCommandMap.containsKey("cvc")) {
@@ -27,7 +28,7 @@ public class CashOutController {
         return cashOutService.cashOut(cashOutCommand);
     }
 
-    @PostMapping("/success/{cashOutPtn}")
+    @GetMapping("/success/{cashOutPtn}")
     public Boolean cashOut(@PathVariable String cashOutPtn) {
         return cashOutService.isCashOutSuccessful(cashOutPtn);
     }

@@ -44,24 +44,24 @@ public class CashOutServiceImpl implements CashOutService {
         try {
             return s3pCashOut(request, cashOutCommand);
         } catch (ApiException e) {
-            log.error(e.getMessage());
+            log.error(e.getResponseBody());
             throw new CustomException("Error During CashOut", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    private String s3pCashOut(Request request, CashOutCommand airtimeCmd) throws ApiException {
+    private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
         Set<Service> services = Constants.services;
         Integer sourceServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.CASHOUT
-                        && service.getTitle().toLowerCase().contains(airtimeCmd.getSource().toLowerCase()))
+                        && service.getTitle().toLowerCase().contains(cashOutCommand.getSource().toLowerCase()))
                 .mapToInt(Service::getServiceid).findFirst()
                 .orElseThrow(() -> {
-                    log.error("No Service with name {}.",airtimeCmd.getSource());
+                    log.error("No Service with name {}.",cashOutCommand.getSource());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
         Cashout cashout = collectionApi.cashoutGet(sourceServiceId).get(0);
         log.info("Initiating Quote Request for Cash out");
         QuoteRequest quoteRequest = new QuoteRequest();
-        quoteRequest.setAmount(airtimeCmd.getAmountWithFee());
+        quoteRequest.setAmount(cashOutCommand.getAmountWithFee());
         quoteRequest.setPayItemId(cashout.getPayItemId());
         Quotestd offer = collectionApi.quotestdPost(quoteRequest);
         log.info("Successful Quote Cash Out Request");
@@ -71,7 +71,7 @@ public class CashOutServiceImpl implements CashOutService {
         collection.setCustomerPhonenumber(phoneNumber);
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + airtimeCmd.getSourceServiceNumber());
+        collection.setServiceNumber("" + cashOutCommand.getSourceServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Cash Out Successful");
@@ -82,6 +82,7 @@ public class CashOutServiceImpl implements CashOutService {
 
     @Override
     public Boolean isCashOutSuccessful(String cashOutPtn) {
+        log.debug("Verifying if transaction with PTN: {} is Successful",cashOutPtn);
         try {
             if (checks.isS3pAvailable()) {
                 List<Historystd> historystds = historyApi.historystdGet(cashOutPtn, null, null, null);

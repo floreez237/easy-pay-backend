@@ -38,6 +38,7 @@ public class AirtimeServiceImpl implements AirtimeService {
         try {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
+                request.setAmountCreditedInDestination(airtimeCmd.getAmount());
                 s3pAirtimeTopup(request, airtimeCmd);
                 return request.getRequestId().toString();
             }
