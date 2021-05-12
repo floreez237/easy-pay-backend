@@ -16,5 +16,6 @@ public class AirtimePaymentCmd extends BasePaymentCmd {
     public AirtimePaymentCmd(Map<String, String> airtimeRequestParams) {
         super(airtimeRequestParams.get("destination"),airtimeRequestParams.get("destinationServiceNumber"),
                 Float.valueOf(airtimeRequestParams.get("amount")));
+
     }
 }

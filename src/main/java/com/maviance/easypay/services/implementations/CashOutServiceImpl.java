@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.maviance.easypay.utils.Constants.email;
-import static com.maviance.easypay.utils.Constants.phoneNumber;
 
 @org.springframework.stereotype.Service
 @Slf4j
@@ -48,6 +47,7 @@ public class CashOutServiceImpl implements CashOutService {
             throw new CustomException("Error During CashOut", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
         Set<Service> services = Constants.services;
         Integer sourceServiceId = services.stream()
@@ -55,7 +55,7 @@ public class CashOutServiceImpl implements CashOutService {
                         && service.getTitle().toLowerCase().contains(cashOutCommand.getSource().toLowerCase()))
                 .mapToInt(Service::getServiceid).findFirst()
                 .orElseThrow(() -> {
-                    log.error("No Service with name {}.",cashOutCommand.getSource());
+                    log.error("No Service with name {}.", cashOutCommand.getSource());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
         Cashout cashout = collectionApi.cashoutGet(sourceServiceId).get(0);
@@ -68,7 +68,7 @@ public class CashOutServiceImpl implements CashOutService {
         log.info("{}", offer);
         log.info("Initiating Collection for Cash Out");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber(phoneNumber);
+        collection.setCustomerPhonenumber("" + cashOutCommand.getSourceServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
         collection.setServiceNumber("" + cashOutCommand.getSourceServiceNumber());
@@ -82,7 +82,7 @@ public class CashOutServiceImpl implements CashOutService {
 
     @Override
     public Boolean isCashOutSuccessful(String cashOutPtn) {
-        log.debug("Verifying if transaction with PTN: {} is Successful",cashOutPtn);
+        log.debug("Verifying if transaction with PTN: {} is Successful", cashOutPtn);
         try {
             if (checks.isS3pAvailable()) {
                 List<Historystd> historystds = historyApi.historystdGet(cashOutPtn, null, null, null);
