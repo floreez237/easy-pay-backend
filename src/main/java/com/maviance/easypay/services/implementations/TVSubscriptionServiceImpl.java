@@ -57,6 +57,7 @@ public class TVSubscriptionServiceImpl implements TVSubscriptionService {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
                 if (request == null) {
+                    log.error("No previously CashOut Corresponding To PTN");
                     throw new CustomException("No previously CashOut Corresponding To PTN", HttpStatus.NOT_ACCEPTABLE);
                 }
                 request.configWithPaymentCommand(tvSubscriptionPaymentCmd);
@@ -65,8 +66,8 @@ public class TVSubscriptionServiceImpl implements TVSubscriptionService {
             }
             throw new CustomException("Server Unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         } catch (ApiException e) {
-            log.error(e.getMessage());
-            throw new CustomException("An Error During Airtime Topup", HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error(e.getResponseBody());
+            throw new CustomException("An Error During Tv Subscription", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -82,7 +83,7 @@ public class TVSubscriptionServiceImpl implements TVSubscriptionService {
         log.info("{}", offer);
         log.info("Initiating Collection for TV Subscription");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber("" + tvSubscriptionPaymentCmd.getDestinationServiceNumber());
+        collection.setCustomerPhonenumber("" + tvSubscriptionPaymentCmd.getNotificationPhoneNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
         collection.setServiceNumber("" + tvSubscriptionPaymentCmd.getDestinationServiceNumber());

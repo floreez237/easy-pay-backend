@@ -38,6 +38,7 @@ public class AirtimeServiceImpl implements AirtimeService {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
                 if (request == null) {
+                    log.error("No previously CashOut Corresponding To PTN");
                     throw new CustomException("No previously CashOut Corresponding To PTN", HttpStatus.NOT_ACCEPTABLE);
                 }
 

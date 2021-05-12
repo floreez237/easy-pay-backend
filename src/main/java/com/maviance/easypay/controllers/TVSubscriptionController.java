@@ -3,6 +3,7 @@ package com.maviance.easypay.controllers;
 import com.maviance.easypay.commands.TVSubscriptionPaymentCmd;
 import com.maviance.easypay.model.SubscriptionOffer;
 import com.maviance.easypay.services.interfaces.TVSubscriptionService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class TVSubscriptionController {
         return tvSubscriptionService.getAllOffers(provider);
     }
 
-    @PostMapping("/pay/{cashOutPtn}")
+    @PostMapping(value = "/pay/{cashOutPtn}",consumes = MediaType.APPLICATION_JSON_VALUE)
     public String payTvOffer(@RequestBody TVSubscriptionPaymentCmd tvSubscriptionPaymentCmd, @PathVariable String cashOutPtn) {
         return tvSubscriptionService.payTvOffer(tvSubscriptionPaymentCmd, cashOutPtn);
     }
