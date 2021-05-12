@@ -5,7 +5,6 @@ import com.maviance.easypay.model.CardDetails;
 import com.maviance.easypay.services.interfaces.CashOutService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.security.auth.callback.CallbackHandler;
 import java.util.Map;
 
 @RestController
@@ -18,13 +17,7 @@ public class CashOutController {
     }
 
     @PostMapping
-//    @CrossOrigin
-    public String cashOut(@RequestParam Map<String, String> cashOutCommandMap) {
-        CardDetails sourceCardDetails = null;
-        if (cashOutCommandMap.containsKey("cvc")) {
-        sourceCardDetails= new CardDetails(cashOutCommandMap);
-        }
-        CashOutCommand cashOutCommand = new CashOutCommand(cashOutCommandMap,sourceCardDetails);
+    public String cashOut(@RequestBody CashOutCommand cashOutCommand) {
         return cashOutService.cashOut(cashOutCommand);
     }
 

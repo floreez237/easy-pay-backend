@@ -4,8 +4,6 @@ import com.maviance.easypay.commands.AirtimePaymentCmd;
 import com.maviance.easypay.services.interfaces.AirtimeService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping(value = "/v1/airtime")
 public class AirtimeController {
@@ -17,8 +15,7 @@ public class AirtimeController {
 
 
     @PostMapping("/topup/{sourcePTN}")
-    public String topup(@RequestParam Map<String,String> airtimeRequestParams, @PathVariable String sourcePTN) {
-        AirtimePaymentCmd airtimeCmd = new AirtimePaymentCmd(airtimeRequestParams);
-        return airtimeService.executeTopup(airtimeCmd, sourcePTN);
+    public String topup(@RequestBody AirtimePaymentCmd airtimePaymentCmd, @PathVariable String sourcePTN) {
+        return airtimeService.executeTopup(airtimePaymentCmd, sourcePTN);
     }
 }
