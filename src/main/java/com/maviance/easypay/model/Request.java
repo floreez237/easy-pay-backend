@@ -47,7 +47,7 @@ public class Request {
     }
 
     public void configWithPaymentCommand(BasePaymentCmd command) {
-        amountDebitedFromSource = command.getAmount();
+        amountCreditedInDestination = command.getAmount();
         destination = command.getDestination();
         destinationServiceNumber = command.getDestinationServiceNumber();
 

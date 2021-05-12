@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import java.util.Set;
 
 import static com.maviance.easypay.utils.Constants.email;
-import static com.maviance.easypay.utils.Constants.phoneNumber;
 
 @org.springframework.stereotype.Service
 @Slf4j
@@ -38,7 +37,12 @@ public class AirtimeServiceImpl implements AirtimeService {
         try {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
-                request.setAmountCreditedInDestination(airtimeCmd.getAmount());
+                if (request == null) {
+                    log.error("No previously CashOut Corresponding To PTN");
+                    throw new CustomException("No previously CashOut Corresponding To PTN", HttpStatus.NOT_ACCEPTABLE);
+                }
+
+                request.configWithPaymentCommand(airtimeCmd);
                 s3pAirtimeTopup(request, airtimeCmd);
                 return request.getRequestId().toString();
             }
@@ -72,7 +76,7 @@ public class AirtimeServiceImpl implements AirtimeService {
         log.info("{}", offer);
         log.info("Initiating Collection for Topup");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber(phoneNumber);
+        collection.setCustomerPhonenumber("" + airtimeCmd.getDestinationServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
         collection.setServiceNumber("" + airtimeCmd.getDestinationServiceNumber());

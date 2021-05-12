@@ -13,12 +13,10 @@ import org.maviance.s3pjavaclient.api.CollectionApi;
 import org.maviance.s3pjavaclient.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import sun.management.Agent;
 
 import java.util.Set;
 
 import static com.maviance.easypay.utils.Constants.email;
-import static com.maviance.easypay.utils.Constants.phoneNumber;
 
 @Service
 @Slf4j
@@ -56,7 +54,7 @@ public class CashInServiceImpl implements CashInService {
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
         Cashin cashin = collectionApi.cashinGet(sourceServiceId).get(0);
-        log.info("Initiating Quote Request for {} Cash In",cashInCommand.getSource());
+        log.info("Initiating Quote Request for {} Cash In", cashInCommand.getSource());
         QuoteRequest quoteRequest = new QuoteRequest();
         quoteRequest.setAmount(cashInCommand.getAmountWithFee());
         quoteRequest.setPayItemId(cashin.getPayItemId());
@@ -65,7 +63,7 @@ public class CashInServiceImpl implements CashInService {
         log.info("{}", offer);
         log.info("Initiating Collection for Cash In");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber(phoneNumber);
+        collection.setCustomerPhonenumber("" + cashInCommand.getSourceServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
         collection.setServiceNumber("" + cashInCommand.getSourceServiceNumber());
