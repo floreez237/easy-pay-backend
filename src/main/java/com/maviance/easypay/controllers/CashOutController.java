@@ -1,11 +1,8 @@
 package com.maviance.easypay.controllers;
 
 import com.maviance.easypay.commands.CashOutCommand;
-import com.maviance.easypay.model.CardDetails;
 import com.maviance.easypay.services.interfaces.CashOutService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/v1/cashout")

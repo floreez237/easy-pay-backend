@@ -1,10 +1,8 @@
 package com.maviance.easypay.controllers;
 
+import com.maviance.easypay.commands.CashInCommand;
 import com.maviance.easypay.services.interfaces.CashInService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/v1/cashin")
@@ -15,8 +13,13 @@ public class CashInController {
         this.cashInService = cashInService;
     }
 
-    @PostMapping("/{cashOutPtn}")
+    @PostMapping("/reimburse/{cashOutPtn}")
     public String reimburse(@PathVariable String cashOutPtn) {
         return cashInService.reimburse(cashOutPtn);
+    }
+
+    @PostMapping("/{cashOutPtn}")
+    public String fundTransferCashIn(@RequestBody CashInCommand cashInCommand, @PathVariable String cashOutPtn) {
+        return cashInService.fundTransferCashIn(cashInCommand,cashOutPtn);
     }
 }

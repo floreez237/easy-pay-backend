@@ -4,7 +4,6 @@ import com.maviance.easypay.commands.BasePaymentCmd;
 import com.maviance.easypay.commands.CashOutCommand;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
