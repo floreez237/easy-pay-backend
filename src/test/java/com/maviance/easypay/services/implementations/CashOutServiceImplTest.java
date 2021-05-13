@@ -61,7 +61,7 @@ class CashOutServiceImplTest {
         service.setType(Service.TypeEnum.CASHOUT);
         service.setTitle("Orange Money");
         service.setServiceid(1);
-        Constants.services.add(service);
+        Constants.SERVICES.add(service);
 
         Cashout cashout = new Cashout();
         cashout.setPayItemId("1");

@@ -55,7 +55,7 @@ public class AirtimeServiceImpl implements AirtimeService {
     }
 
     private void s3pAirtimeTopup(Request request, AirtimePaymentCmd airtimeCmd) throws ApiException {
-        Set<Service> services = Constants.services;
+        Set<Service> services = Constants.SERVICES;
         Integer sourceServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.TOPUP &&
                         service.getTitle().toLowerCase().contains(airtimeCmd.getDestination().toLowerCase()))

@@ -49,7 +49,7 @@ public class CashOutServiceImpl implements CashOutService {
     }
 
     private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
-        Set<Service> services = Constants.services;
+        Set<Service> services = Constants.SERVICES;
         Integer sourceServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.CASHOUT
                         && service.getTitle().toLowerCase().contains(cashOutCommand.getSource().toLowerCase()))

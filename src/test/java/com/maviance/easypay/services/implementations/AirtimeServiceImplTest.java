@@ -53,7 +53,7 @@ class AirtimeServiceImplTest {
         service.setType(Service.TypeEnum.TOPUP);
         service.setTitle("Orange");
         service.setServiceid(1);
-        Constants.services.add(service);
+        Constants.SERVICES.add(service);
 
         Topup topup = new Topup();
         topup.setPayItemId("1");
@@ -95,7 +95,7 @@ class AirtimeServiceImplTest {
         service.setType(Service.TypeEnum.TOPUP);
         service.setTitle("Orange");
         service.setServiceid(1);
-        Constants.services.add(service);
+        Constants.SERVICES.add(service);
         Mockito.when(collectionApi.topupGet(1)).thenThrow(ApiException.class);
         CustomException exception = assertThrows(CustomException.class, () -> airtimeService.executeTopup(airtimeCommand, null));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());

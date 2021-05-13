@@ -1,7 +1,6 @@
 package com.maviance.easypay.services.implementations;
 
 import com.maviance.easypay.commands.CashInCommand;
-import com.maviance.easypay.commands.CashOutCommand;
 import com.maviance.easypay.config.Checks;
 import com.maviance.easypay.exceptions.CustomException;
 import com.maviance.easypay.model.Request;
@@ -50,7 +49,7 @@ public class CashInServiceImpl implements CashInService {
     }
 
     @Override
-    public String fundTransferCashIn(CashInCommand cashInCommand,String sourcePTN) {
+    public String fundTransferCashIn(CashInCommand cashInCommand, String sourcePTN) {
         try {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
@@ -72,7 +71,7 @@ public class CashInServiceImpl implements CashInService {
     }
 
     private String s3pCashIn(Request request, CashInCommand cashInCommand) throws ApiException {
-        Set<org.maviance.s3pjavaclient.model.Service> services = Constants.services;
+        Set<org.maviance.s3pjavaclient.model.Service> services = Constants.SERVICES;
         Integer sourceServiceId = services.stream()
                 .filter(service -> service.getType() == org.maviance.s3pjavaclient.model.Service.TypeEnum.CASHIN
                         && service.getTitle().toLowerCase().contains(cashInCommand.getDestination().toLowerCase()))

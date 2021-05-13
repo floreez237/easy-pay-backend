@@ -15,7 +15,6 @@ import org.maviance.s3pjavaclient.model.*;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.maviance.easypay.utils.Constants.email;
@@ -37,7 +36,7 @@ public class TVSubscriptionServiceImpl implements TVSubscriptionService {
     @Override
     public List<SubscriptionOffer> getAllOffers(String providerName) {
         try {
-            Integer serviceId = Constants.services.stream().filter(service -> service.getTitle().toLowerCase().contains(providerName.toLowerCase()))
+            Integer serviceId = Constants.SERVICES.stream().filter(service -> service.getTitle().toLowerCase().contains(providerName.toLowerCase()))
                     .findFirst().orElseThrow(() -> new CustomException("No provider with the Given Name", HttpStatus.BAD_REQUEST)).getServiceid();
             final List<Product> products = collectionApi.productGet(serviceId);
             if (products.isEmpty()) {
