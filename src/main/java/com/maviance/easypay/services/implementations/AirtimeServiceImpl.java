@@ -48,7 +48,7 @@ public class AirtimeServiceImpl implements AirtimeService {
             }
             throw new CustomException("Server Unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         } catch (ApiException e) {
-            log.error(e.getMessage());
+            log.error(e.getResponseBody());
             throw new CustomException("An Error During Airtime Topup", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -56,7 +56,7 @@ public class AirtimeServiceImpl implements AirtimeService {
 
     private void s3pAirtimeTopup(Request request, AirtimePaymentCmd airtimeCmd) throws ApiException {
         Set<Service> services = Constants.SERVICES;
-        Integer sourceServiceId = services.stream()
+        Integer destinationServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.TOPUP &&
                         service.getTitle().toLowerCase().contains(airtimeCmd.getDestination().toLowerCase()))
                 .mapToInt(Service::getServiceid).findFirst()
@@ -64,7 +64,7 @@ public class AirtimeServiceImpl implements AirtimeService {
                     log.error("No Service with name {}.",airtimeCmd.getDestination());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
-        Topup topup = collectionApi.topupGet(sourceServiceId).get(0);
+        Topup topup = collectionApi.topupGet(destinationServiceId).get(0);
         topup.setAmountLocalCur(airtimeCmd.getAmount());
         log.info("Initiating Quote Request for Topup");
         QuoteRequest quoteRequest = new QuoteRequest();
@@ -76,10 +76,10 @@ public class AirtimeServiceImpl implements AirtimeService {
         log.info("{}", offer);
         log.info("Initiating Collection for Topup");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber("" + airtimeCmd.getDestinationServiceNumber());
+        collection.setCustomerPhonenumber(request.getSourceServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + airtimeCmd.getDestinationServiceNumber());
+        collection.setServiceNumber(airtimeCmd.getDestinationServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Successful");

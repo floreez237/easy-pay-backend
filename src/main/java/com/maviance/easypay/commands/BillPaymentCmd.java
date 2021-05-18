@@ -2,16 +2,18 @@ package com.maviance.easypay.commands;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = false)
 @Getter
+@NoArgsConstructor
 public class BillPaymentCmd extends BasePaymentCmd {
-    private final String contractNumber;
+    private String billPayItemId;
 
-    public BillPaymentCmd(String destination, String destinationServiceNumber, Float amount, String contractNumber) {
+    public BillPaymentCmd(String destination, String destinationServiceNumber, Float amount, String billPayItemId) {
         super(destination, destinationServiceNumber, amount);
-        this.contractNumber = contractNumber;
+        this.billPayItemId = billPayItemId;
     }
 }

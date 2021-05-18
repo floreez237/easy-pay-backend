@@ -82,10 +82,10 @@ public class TVSubscriptionServiceImpl implements TVSubscriptionService {
         log.info("{}", offer);
         log.info("Initiating Collection for TV Subscription");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber("" + tvSubscriptionPaymentCmd.getNotificationPhoneNumber());
+        collection.setCustomerPhonenumber(tvSubscriptionPaymentCmd.getNotificationPhoneNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + tvSubscriptionPaymentCmd.getDestinationServiceNumber());
+        collection.setServiceNumber(tvSubscriptionPaymentCmd.getDestinationServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Successful");

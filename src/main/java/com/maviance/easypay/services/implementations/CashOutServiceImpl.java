@@ -68,10 +68,10 @@ public class CashOutServiceImpl implements CashOutService {
         log.info("{}", offer);
         log.info("Initiating Collection for Cash Out");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber("" + cashOutCommand.getSourceServiceNumber());
+        collection.setCustomerPhonenumber(cashOutCommand.getSourceServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + cashOutCommand.getSourceServiceNumber());
+        collection.setServiceNumber(cashOutCommand.getSourceServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Cash Out Successful");

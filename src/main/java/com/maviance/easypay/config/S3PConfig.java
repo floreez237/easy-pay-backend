@@ -63,6 +63,7 @@ public class S3PConfig {
             if (checks.isS3pAvailable()) {
                 Constants.SERVICES.addAll(masterdataApi.serviceGet());
                 Constants.MERCHANTS.addAll(masterdataApi.merchantGet());
+                log.info("Services and Merchants Fetched");
             } else {
                 throw new RuntimeException("S3P is not available");
             }

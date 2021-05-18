@@ -12,13 +12,13 @@ import org.maviance.s3pjavaclient.ApiException;
 import org.maviance.s3pjavaclient.api.CollectionApi;
 import org.maviance.s3pjavaclient.model.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
 import static com.maviance.easypay.utils.Constants.email;
+//import static org.maviance.s3pjavaclient.model.Service.*;
 
-@Service
+@org.springframework.stereotype.Service
 @Slf4j
 public class CashInServiceImpl implements CashInService {
     private final RequestRepo requestRepo;
@@ -72,15 +72,15 @@ public class CashInServiceImpl implements CashInService {
 
     private String s3pCashIn(Request request, CashInCommand cashInCommand) throws ApiException {
         Set<org.maviance.s3pjavaclient.model.Service> services = Constants.SERVICES;
-        Integer sourceServiceId = services.stream()
-                .filter(service -> service.getType() == org.maviance.s3pjavaclient.model.Service.TypeEnum.CASHIN
+        Integer destinationServiceId = services.stream()
+                .filter(service -> service.getType() == Service.TypeEnum.CASHIN
                         && service.getTitle().toLowerCase().contains(cashInCommand.getDestination().toLowerCase()))
                 .mapToInt(org.maviance.s3pjavaclient.model.Service::getServiceid).findFirst()
                 .orElseThrow(() -> {
                     log.error("No Service with name {}.", cashInCommand.getDestination());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
-        Cashin cashin = collectionApi.cashinGet(sourceServiceId).get(0);
+        Cashin cashin = collectionApi.cashinGet(destinationServiceId).get(0);
         log.info("Initiating Quote Request for {} Cash In", cashInCommand.getDestination());
         QuoteRequest quoteRequest = new QuoteRequest();
         quoteRequest.setAmount(cashInCommand.getAmount());
@@ -90,14 +90,14 @@ public class CashInServiceImpl implements CashInService {
         log.info("{}", offer);
         log.info("Initiating Collection for Cash In");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber("" + cashInCommand.getDestinationServiceNumber());
+        collection.setCustomerPhonenumber(cashInCommand.getDestinationServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + cashInCommand.getDestinationServiceNumber());
+        collection.setServiceNumber(request.getSourceServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Cash In Successful");
-        request.setSourcePTN(payment.getPtn());
+        request.setDestinationPTN( payment.getPtn());
         requestRepo.save(request);
         return payment.getPtn();
     }

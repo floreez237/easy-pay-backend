@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorMessage> handleCustomException(CustomException exception) {
+        log.error(exception.getMessage());
         return new ResponseEntity<>(new ErrorMessage(exception),exception.getHttpStatus());
     }
 
