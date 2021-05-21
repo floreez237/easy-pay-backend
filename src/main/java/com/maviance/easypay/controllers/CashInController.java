@@ -15,7 +15,7 @@ public class CashInController {
 
     @PostMapping("/reimburse/{cashOutPtn}")
     public String reimburse(@PathVariable String cashOutPtn) {
-        return cashInService.reimburse(cashOutPtn);
+        return cashInService.s3pReimburse(cashOutPtn);
     }
 
     @PostMapping("/{cashOutPtn}")

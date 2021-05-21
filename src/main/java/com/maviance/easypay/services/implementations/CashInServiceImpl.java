@@ -32,7 +32,7 @@ public class CashInServiceImpl implements CashInService {
     }
 
     @Override
-    public String reimburse(String cashOutPTN) {
+    public String s3pReimburse(String cashOutPTN) {
         Request request = requestRepo.findBySourcePTN(cashOutPTN);
         request.setStatus(Request.Status.REIMBURSED);
         try {
