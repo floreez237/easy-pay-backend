@@ -36,9 +36,10 @@ public class Request {
     @Enumerated(EnumType.STRING)
     private Request.Status status;
     @Embedded
-    @AttributeOverrides({@AttributeOverride(name = "CVC", column = @Column(name = "source_cvc")),
+    @AttributeOverrides({
             @AttributeOverride(name = "cardholderName", column = @Column(name = "source_cardholder_name")),
-            @AttributeOverride(name = "expiryDate", column = @Column(name = "source_expiry_date"))})
+            @AttributeOverride(name = "cardholderEmail", column = @Column(name = "source_cardholder_email")),
+            })
     private CardDetails sourceCardDetails;
 
     public enum Status {
@@ -57,6 +58,7 @@ public class Request {
         sourceServiceNumber = cashOutCommand.getSourceServiceNumber();
         sourceCardDetails = cashOutCommand.getSourceCardDetails();
         amountDebitedFromSource = cashOutCommand.getAmountWithFee();
+
     }
 
 }

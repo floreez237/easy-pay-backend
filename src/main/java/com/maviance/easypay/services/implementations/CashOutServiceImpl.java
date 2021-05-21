@@ -1,5 +1,8 @@
 package com.maviance.easypay.services.implementations;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maviance.easypay.commands.CashOutCommand;
 import com.maviance.easypay.config.Checks;
 import com.maviance.easypay.exceptions.CustomException;
@@ -7,12 +10,18 @@ import com.maviance.easypay.model.Request;
 import com.maviance.easypay.repositories.RequestRepo;
 import com.maviance.easypay.services.interfaces.CashOutService;
 import com.maviance.easypay.utils.Constants;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.maviance.s3pjavaclient.ApiException;
 import org.maviance.s3pjavaclient.api.CollectionApi;
 import org.maviance.s3pjavaclient.api.HistoryApi;
 import org.maviance.s3pjavaclient.model.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -23,12 +32,18 @@ import static com.maviance.easypay.utils.Constants.email;
 @org.springframework.stereotype.Service
 @Slf4j
 public class CashOutServiceImpl implements CashOutService {
+
+    @Value("${flutterwave.auth.token}")
+    private String flutterWaveToken;
+    @Value("${flutterwave.base.url}")
+    private String flutterWaveBaseUrl;
     private final CollectionApi collectionApi;
     private final RequestRepo requestRepo;
     private final HistoryApi historyApi;
     private final Checks checks;
     private final RestTemplate restTemplate;
-    public CashOutServiceImpl(CollectionApi collectionApi, RequestRepo requestRepo, HistoryApi historyApi, Checks checks, RestTemplate restTemplate) {
+    public CashOutServiceImpl(CollectionApi collectionApi, RequestRepo requestRepo,
+                              HistoryApi historyApi, Checks checks, RestTemplate restTemplate) {
         this.collectionApi = collectionApi;
         this.requestRepo = requestRepo;
         this.historyApi = historyApi;
@@ -37,7 +52,7 @@ public class CashOutServiceImpl implements CashOutService {
     }
 
     @Override
-    public String cashOut(CashOutCommand cashOutCommand) {
+    public String s3pCashOut(CashOutCommand cashOutCommand) {
         Request request = new Request();
         request.configWithCashOutCommand(cashOutCommand);
         request.setStatus(Request.Status.PENDING);
@@ -50,9 +65,48 @@ public class CashOutServiceImpl implements CashOutService {
         }
     }
 
-    private String cardCashOut(CashOutCommand cashOutCommand) {
+    @Override
+    public String initiateCardCashOut(String encryptedPayload) {
+        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(encryptedPayload));
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                return jsonNode.get("meta").get("authorization").get("mode").asText();
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return null;
     }
+
+    public String authenticateCashOutWithPin(CashOutCommand cashOutCommand) {
+        Request request = new Request();
+        request.configWithCashOutCommand(cashOutCommand);
+        request.setStatus(Request.Status.PENDING);
+        requestRepo.save(request);
+        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(cashOutCommand.getSourceCardDetails().getEncryptedPayload()));
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                final String flutterWaveRef = jsonNode.get("data").get("flw_ref").asText();
+                request.setSourcePTN(flutterWaveRef);
+                requestRepo.save(request);
+                return flutterWaveRef;
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+//    public strin
+
+
+
 
     private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
         Set<Service> services = Constants.SERVICES;
@@ -105,4 +159,18 @@ public class CashOutServiceImpl implements CashOutService {
             throw new CustomException("Error Occurred during verification", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    static class FlutterWaveChargeRequest {
+        private String client;
+
+        FlutterWaveChargeRequest(String client) {
+            this.client = client;
+        }
+    }
+
+
+
 }

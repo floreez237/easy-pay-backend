@@ -15,7 +15,7 @@ public class CashOutController {
 
     @PostMapping
     public String cashOut(@RequestBody CashOutCommand cashOutCommand) {
-        return cashOutService.cashOut(cashOutCommand);
+        return cashOutService.s3pCashOut(cashOutCommand);
     }
 
     @GetMapping("/success/{cashOutPtn}")

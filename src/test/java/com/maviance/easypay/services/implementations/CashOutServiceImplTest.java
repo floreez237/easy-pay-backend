@@ -78,7 +78,7 @@ class CashOutServiceImplTest {
 
         Mockito.when(requestRepo.save(Mockito.any())).thenReturn(request);
 
-        String ptn = cashOutService.cashOut(cashOutCommand);
+        String ptn = cashOutService.s3pCashOut(cashOutCommand);
         assertEquals("ptn1", ptn);
 
     }
@@ -91,7 +91,7 @@ class CashOutServiceImplTest {
 
         Mockito.when(requestRepo.save(Mockito.any())).thenReturn(request);
 
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.cashOut(cashOutCommand));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.s3pCashOut(cashOutCommand));
         assertEquals(HttpStatus.BAD_REQUEST,exception.getHttpStatus());
     }
 
