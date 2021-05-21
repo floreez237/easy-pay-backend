@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Embeddable;
-import java.util.Date;
 
 
 @Embeddable
@@ -13,8 +12,10 @@ import java.util.Date;
 @NoArgsConstructor
 @Slf4j
 public class CardDetails {
-    private Integer CVC;
+    private Integer cvc;
     private String cardholderName;
-    private Date expiryDate;
+    private int expiryMonth;
+    private int expiryYear;
+    private String encryptedPayload;
 
 }

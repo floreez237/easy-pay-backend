@@ -19,7 +19,7 @@ public class CashOutController {
     }
 
     @GetMapping("/success/{cashOutPtn}")
-    public Boolean cashOut(@PathVariable String cashOutPtn) {
+    public Boolean checkS3pCashOutStatus(@PathVariable String cashOutPtn) {
         return cashOutService.isCashOutSuccessful(cashOutPtn);
     }
 }

@@ -13,6 +13,7 @@ import org.maviance.s3pjavaclient.api.CollectionApi;
 import org.maviance.s3pjavaclient.api.HistoryApi;
 import org.maviance.s3pjavaclient.model.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Set;
@@ -26,12 +27,13 @@ public class CashOutServiceImpl implements CashOutService {
     private final RequestRepo requestRepo;
     private final HistoryApi historyApi;
     private final Checks checks;
-
-    public CashOutServiceImpl(CollectionApi collectionApi, RequestRepo requestRepo, HistoryApi historyApi, Checks checks) {
+    private final RestTemplate restTemplate;
+    public CashOutServiceImpl(CollectionApi collectionApi, RequestRepo requestRepo, HistoryApi historyApi, Checks checks, RestTemplate restTemplate) {
         this.collectionApi = collectionApi;
         this.requestRepo = requestRepo;
         this.historyApi = historyApi;
         this.checks = checks;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -46,6 +48,10 @@ public class CashOutServiceImpl implements CashOutService {
             log.error(e.getResponseBody());
             throw new CustomException("Error During CashOut", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private String cardCashOut(CashOutCommand cashOutCommand) {
+        return null;
     }
 
     private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
