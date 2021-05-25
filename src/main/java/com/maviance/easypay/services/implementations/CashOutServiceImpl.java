@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maviance.easypay.commands.CashOutCommand;
+import com.maviance.easypay.commands.FlutterWaveValidationCmd;
 import com.maviance.easypay.config.Checks;
 import com.maviance.easypay.exceptions.CustomException;
+import com.maviance.easypay.model.CardPaymentPinResponse;
+import com.maviance.easypay.model.GeneralCardPaymentResponse;
 import com.maviance.easypay.model.Request;
 import com.maviance.easypay.repositories.RequestRepo;
 import com.maviance.easypay.services.interfaces.CashOutService;
@@ -33,8 +36,6 @@ import static com.maviance.easypay.utils.Constants.email;
 @Slf4j
 public class CashOutServiceImpl implements CashOutService {
 
-    @Value("${flutterwave.auth.token}")
-    private String flutterWaveToken;
     @Value("${flutterwave.base.url}")
     private String flutterWaveBaseUrl;
     private final CollectionApi collectionApi;
@@ -42,6 +43,7 @@ public class CashOutServiceImpl implements CashOutService {
     private final HistoryApi historyApi;
     private final Checks checks;
     private final RestTemplate restTemplate;
+
     public CashOutServiceImpl(CollectionApi collectionApi, RequestRepo requestRepo,
                               HistoryApi historyApi, Checks checks, RestTemplate restTemplate) {
         this.collectionApi = collectionApi;
@@ -64,49 +66,6 @@ public class CashOutServiceImpl implements CashOutService {
             throw new CustomException("Error During CashOut", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @Override
-    public String initiateCardCashOut(String encryptedPayload) {
-        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(encryptedPayload));
-        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
-        try {
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                final ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
-                return jsonNode.get("meta").get("authorization").get("mode").asText();
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return null;
-    }
-
-    public String authenticateCashOutWithPin(CashOutCommand cashOutCommand) {
-        Request request = new Request();
-        request.configWithCashOutCommand(cashOutCommand);
-        request.setStatus(Request.Status.PENDING);
-        requestRepo.save(request);
-        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(cashOutCommand.getSourceCardDetails().getEncryptedPayload()));
-        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
-        try {
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                final ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
-                final String flutterWaveRef = jsonNode.get("data").get("flw_ref").asText();
-                request.setSourcePTN(flutterWaveRef);
-                requestRepo.save(request);
-                return flutterWaveRef;
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return null;
-    }
-
-//    public strin
-
-
-
 
     private String s3pCashOut(Request request, CashOutCommand cashOutCommand) throws ApiException {
         Set<Service> services = Constants.SERVICES;
@@ -141,7 +100,7 @@ public class CashOutServiceImpl implements CashOutService {
     }
 
     @Override
-    public Boolean isCashOutSuccessful(String cashOutPtn) {
+    public Boolean isS3PCashOutSuccessful(String cashOutPtn) {
         log.debug("Verifying if transaction with PTN: {} is Successful", cashOutPtn);
         try {
             if (checks.isS3pAvailable()) {
@@ -160,6 +119,116 @@ public class CashOutServiceImpl implements CashOutService {
         }
     }
 
+    @Override
+    public GeneralCardPaymentResponse initiateCardCashOut(CashOutCommand cashOutCommand) {
+        log.info("Initiating Card Cash Out");
+        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(cashOutCommand.getSourceCardDetails().getEncryptedPayload()));
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                final String mode = jsonNode.get("meta").get("authorization").get("mode").asText();
+                final GeneralCardPaymentResponse paymentResponse = new GeneralCardPaymentResponse();
+                paymentResponse.setMode(mode);
+                if (mode.equals("redirect")) {
+                    String transactionId = jsonNode.get("data").get("id").asText();
+                    String redirect = jsonNode.get("meta").get("authorization").get("redirect").asText();
+                    paymentResponse.setTransactionId(transactionId);
+                    paymentResponse.setRedirect(redirect);
+
+                    log.info("Saving Request");
+                    Request request = new Request();
+                    request.configWithCashOutCommand(cashOutCommand);
+                    request.setStatus(Request.Status.PENDING);
+                    request.setSourcePTN(transactionId);
+                    requestRepo.save(request);
+                }
+                log.info("Completed Card Cashout request");
+                return paymentResponse;
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error Occurred during Cash Out");
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    @Override
+    public CardPaymentPinResponse authenticateCashOutWithPin(CashOutCommand cashOutCommand) {
+        log.info("Authenticating Cash Out With PIN");
+        Request request = new Request();
+        request.configWithCashOutCommand(cashOutCommand);
+        request.setStatus(Request.Status.PENDING);
+        requestRepo.save(request);
+        HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(cashOutCommand.getSourceCardDetails().getEncryptedPayload()));
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                final String flutterWaveRef = jsonNode.get("data").get("flw_ref").asText();
+                final String message = jsonNode.get("data").get("processor_response").asText();
+                final String txId = jsonNode.get("data").get("id").asText();
+                final boolean isSuccessful = jsonNode.get("data").get("status").asText().equals("successful");
+                request.setSourcePTN(txId);
+                requestRepo.save(request);
+                log.info("Authenticated Completed");
+                return new CardPaymentPinResponse(flutterWaveRef, message, txId, isSuccessful);
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Authentication Failed");
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    @Override
+    public String validateCardPayment(FlutterWaveValidationCmd flutterWaveValidationCmd) {
+        log.info("Validating Payment.");
+        HttpEntity<FlutterWaveValidationCmd> requestHttpEntity = new HttpEntity<>(flutterWaveValidationCmd);
+        final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/validate-charge"), requestHttpEntity, String.class);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                log.info("Completed Payment Validation");
+                return jsonNode.get("data").get("status").asText();
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean isCardTransactionSuccessful(String txId) {
+        log.info("Verify Transaction with Id: {}", txId);
+        final ResponseEntity<String> responseEntity = restTemplate.getForEntity(flutterWaveBaseUrl.concat("/transactions/{tx_id}/verify"), String.class, txId);
+        try {
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                final ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                final boolean isSuccessful = jsonNode.get("data").get("status").asText().equals("successful");
+                if (isSuccessful) {
+                    final Request request = requestRepo.findBySourcePTN(txId);
+                    if (request == null) {
+                        log.error("A Request with the given transaction Id is supposed to exist.");
+                        throw new CustomException("Invalid Transaction ID", HttpStatus.BAD_REQUEST);
+                    }
+                    request.setStatus(Request.Status.SUCCESS);
+                    requestRepo.save(request);
+                }
+                log.info("Status of transaction with Id : {}",isSuccessful);
+                return isSuccessful;
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -170,7 +239,6 @@ public class CashOutServiceImpl implements CashOutService {
             this.client = client;
         }
     }
-
 
 
 }

@@ -101,14 +101,14 @@ class CashOutServiceImplTest {
                 .thenReturn(Collections.singletonList(historystd));
         Mockito.when(checks.isS3pAvailable()).thenReturn(true);
 
-        boolean isCashoutSuccessful = cashOutService.isCashOutSuccessful(cashoutptn);
+        boolean isCashoutSuccessful = cashOutService.isS3PCashOutSuccessful(cashoutptn);
         assertTrue(isCashoutSuccessful);
     }
 
     @Test
     void isCashOutSuccessful_S3pUnavailable() {
         Mockito.when(checks.isS3pAvailable()).thenReturn(false);
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isCashOutSuccessful(cashoutptn));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isS3PCashOutSuccessful(cashoutptn));
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
     }
 
@@ -117,7 +117,7 @@ class CashOutServiceImplTest {
         Mockito.when(checks.isS3pAvailable()).thenReturn(true);
         Mockito.when(historyApi.historystdGet(cashoutptn, null, null, null))
                 .thenThrow(new ApiException("History Error"));
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isCashOutSuccessful(cashoutptn));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isS3PCashOutSuccessful(cashoutptn));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
     }
 
