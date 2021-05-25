@@ -78,7 +78,7 @@ class CashOutServiceImplTest {
 
         Mockito.when(requestRepo.save(Mockito.any())).thenReturn(request);
 
-        String ptn = cashOutService.cashOut(cashOutCommand);
+        String ptn = cashOutService.s3pCashOut(cashOutCommand);
         assertEquals("ptn1", ptn);
 
     }
@@ -91,7 +91,7 @@ class CashOutServiceImplTest {
 
         Mockito.when(requestRepo.save(Mockito.any())).thenReturn(request);
 
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.cashOut(cashOutCommand));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.s3pCashOut(cashOutCommand));
         assertEquals(HttpStatus.BAD_REQUEST,exception.getHttpStatus());
     }
 
@@ -101,14 +101,14 @@ class CashOutServiceImplTest {
                 .thenReturn(Collections.singletonList(historystd));
         Mockito.when(checks.isS3pAvailable()).thenReturn(true);
 
-        boolean isCashoutSuccessful = cashOutService.isCashOutSuccessful(cashoutptn);
+        boolean isCashoutSuccessful = cashOutService.isS3PCashOutSuccessful(cashoutptn);
         assertTrue(isCashoutSuccessful);
     }
 
     @Test
     void isCashOutSuccessful_S3pUnavailable() {
         Mockito.when(checks.isS3pAvailable()).thenReturn(false);
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isCashOutSuccessful(cashoutptn));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isS3PCashOutSuccessful(cashoutptn));
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
     }
 
@@ -117,7 +117,7 @@ class CashOutServiceImplTest {
         Mockito.when(checks.isS3pAvailable()).thenReturn(true);
         Mockito.when(historyApi.historystdGet(cashoutptn, null, null, null))
                 .thenThrow(new ApiException("History Error"));
-        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isCashOutSuccessful(cashoutptn));
+        CustomException exception = assertThrows(CustomException.class, () -> cashOutService.isS3PCashOutSuccessful(cashoutptn));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getHttpStatus());
     }
 

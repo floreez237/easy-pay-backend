@@ -1,10 +1,12 @@
 package com.maviance.easypay.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Transient;
 
 
 @Embeddable
@@ -12,10 +14,8 @@ import javax.persistence.Embeddable;
 @NoArgsConstructor
 @Slf4j
 public class CardDetails {
-    private Integer cvc;
     private String cardholderName;
-    private int expiryMonth;
-    private int expiryYear;
+    private String cardholderEmail;
+    @Transient
     private String encryptedPayload;
-
 }
