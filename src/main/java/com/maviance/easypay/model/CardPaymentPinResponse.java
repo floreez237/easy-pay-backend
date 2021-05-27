@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class CardPaymentPinResponse {
     private String flutterWaveRef;
     private String message;
-    private String id;
+    private String transactionId;
     private Boolean isSuccessful;
+    private String redirect;
 }

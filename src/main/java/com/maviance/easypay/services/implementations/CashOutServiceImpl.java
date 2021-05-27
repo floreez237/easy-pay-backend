@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -163,6 +164,7 @@ public class CashOutServiceImpl implements CashOutService {
         requestRepo.save(request);
         HttpEntity<FlutterWaveChargeRequest> requestHttpEntity = new HttpEntity<>(new FlutterWaveChargeRequest(cashOutCommand.getSourceCardDetails().getEncryptedPayload()));
         final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/charges?type=card"), requestHttpEntity, String.class);
+        log.debug("FlutterWave Response: {}",responseEntity.getBody());
         try {
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 final ObjectMapper objectMapper = new ObjectMapper();
@@ -170,11 +172,17 @@ public class CashOutServiceImpl implements CashOutService {
                 final String flutterWaveRef = jsonNode.get("data").get("flw_ref").asText();
                 final String message = jsonNode.get("data").get("processor_response").asText();
                 final String txId = jsonNode.get("data").get("id").asText();
-                final boolean isSuccessful = jsonNode.get("data").get("status").asText().equals("successful");
+                final boolean isSuccessful = jsonNode.get("status").asText().equals("success");
                 request.setSourcePTN(txId);
                 requestRepo.save(request);
-                log.info("Authenticated Completed");
-                return new CardPaymentPinResponse(flutterWaveRef, message, txId, isSuccessful);
+                final String mode = jsonNode.get("meta").get("authorization").get("mode").asText();
+                log.info("Authentication Completed");
+                if (mode.toLowerCase().equals("redirect")) {
+                    final String redirectUrl = jsonNode.get("meta").get("authorization").get("mode").asText();
+                    return new CardPaymentPinResponse(flutterWaveRef, message, txId, isSuccessful, redirectUrl);
+                } else {
+                    return new CardPaymentPinResponse(flutterWaveRef, message, txId, isSuccessful,null);
+                }
             }
         } catch (JsonProcessingException e) {
             log.error("Authentication Failed");
@@ -188,6 +196,7 @@ public class CashOutServiceImpl implements CashOutService {
         log.info("Validating Payment.");
         HttpEntity<FlutterWaveValidationCmd> requestHttpEntity = new HttpEntity<>(flutterWaveValidationCmd);
         final ResponseEntity<String> responseEntity = restTemplate.postForEntity(flutterWaveBaseUrl.concat("/validate-charge"), requestHttpEntity, String.class);
+        log.debug("FlutterWave Response: {}",responseEntity.getBody());
         try {
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 final ObjectMapper objectMapper = new ObjectMapper();
@@ -205,6 +214,7 @@ public class CashOutServiceImpl implements CashOutService {
     public Boolean isCardTransactionSuccessful(String txId) {
         log.info("Verify Transaction with Id: {}", txId);
         final ResponseEntity<String> responseEntity = restTemplate.getForEntity(flutterWaveBaseUrl.concat("/transactions/{tx_id}/verify"), String.class, txId);
+        log.debug("FlutterWave Response: {}",responseEntity.getBody());
         try {
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 final ObjectMapper objectMapper = new ObjectMapper();
