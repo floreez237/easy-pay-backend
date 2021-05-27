@@ -2,9 +2,11 @@ package com.maviance.easypay.controllers;
 
 import com.maviance.easypay.commands.CashInCommand;
 import com.maviance.easypay.services.interfaces.CashInService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
+@Api(value = "Cash-In")
 @RestController
 @RequestMapping(value = "/v1/cashin")
 public class CashInController {

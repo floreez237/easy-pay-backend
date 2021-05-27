@@ -4,11 +4,13 @@ import com.maviance.easypay.commands.BillFetchCommand;
 import com.maviance.easypay.commands.BillPaymentCmd;
 import com.maviance.easypay.model.BillInfo;
 import com.maviance.easypay.services.interfaces.BillPaymentService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(value = "Bill Payment")
 @RestController
 @RequestMapping("/v1/bills")
 public class BillPaymentController {

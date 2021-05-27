@@ -5,9 +5,11 @@ import com.maviance.easypay.commands.FlutterWaveValidationCmd;
 import com.maviance.easypay.model.CardPaymentPinResponse;
 import com.maviance.easypay.model.GeneralCardPaymentResponse;
 import com.maviance.easypay.services.interfaces.CashOutService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
+@Api(value = "Cash-Out")
 @RestController
 @RequestMapping(value = "/v1/cashout")
 public class CashOutController {

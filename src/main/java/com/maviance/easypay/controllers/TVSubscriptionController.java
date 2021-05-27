@@ -3,12 +3,14 @@ package com.maviance.easypay.controllers;
 import com.maviance.easypay.commands.TVSubscriptionPaymentCmd;
 import com.maviance.easypay.model.SubscriptionOffer;
 import com.maviance.easypay.services.interfaces.TVSubscriptionService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Api(value = "TV Subscription")
 @RestController
 @RequestMapping("/v1/tv")
 public class TVSubscriptionController {

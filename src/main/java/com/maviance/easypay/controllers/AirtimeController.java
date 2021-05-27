@@ -2,10 +2,12 @@ package com.maviance.easypay.controllers;
 
 import com.maviance.easypay.commands.AirtimePaymentCmd;
 import com.maviance.easypay.services.interfaces.AirtimeService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Api(value = "Airtime Topup")
+@RestController()
 @RequestMapping(value = "/v1/airtime")
 public class AirtimeController {
     private final AirtimeService airtimeService;
