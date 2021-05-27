@@ -4,7 +4,6 @@ import com.maviance.easypay.commands.BasePaymentCmd;
 import com.maviance.easypay.commands.CashOutCommand;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -37,9 +36,10 @@ public class Request {
     @Enumerated(EnumType.STRING)
     private Request.Status status;
     @Embedded
-    @AttributeOverrides({@AttributeOverride(name = "CVC", column = @Column(name = "source_cvc")),
+    @AttributeOverrides({
             @AttributeOverride(name = "cardholderName", column = @Column(name = "source_cardholder_name")),
-            @AttributeOverride(name = "expiryDate", column = @Column(name = "source_expiry_date"))})
+            @AttributeOverride(name = "cardholderEmail", column = @Column(name = "source_cardholder_email")),
+            })
     private CardDetails sourceCardDetails;
 
     public enum Status {
@@ -47,7 +47,7 @@ public class Request {
     }
 
     public void configWithPaymentCommand(BasePaymentCmd command) {
-        amountDebitedFromSource = command.getAmount();
+        amountCreditedInDestination = command.getAmount();
         destination = command.getDestination();
         destinationServiceNumber = command.getDestinationServiceNumber();
 
@@ -58,6 +58,7 @@ public class Request {
         sourceServiceNumber = cashOutCommand.getSourceServiceNumber();
         sourceCardDetails = cashOutCommand.getSourceCardDetails();
         amountDebitedFromSource = cashOutCommand.getAmountWithFee();
+
     }
 
 }

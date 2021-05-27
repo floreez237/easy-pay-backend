@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import java.util.Set;
 
 import static com.maviance.easypay.utils.Constants.email;
-import static com.maviance.easypay.utils.Constants.phoneNumber;
 
 @org.springframework.stereotype.Service
 @Slf4j
@@ -38,21 +37,26 @@ public class AirtimeServiceImpl implements AirtimeService {
         try {
             if (checks.isS3pAvailable()) {
                 Request request = requestRepo.findBySourcePTN(sourcePTN);
-                request.setAmountCreditedInDestination(airtimeCmd.getAmount());
+                if (request == null) {
+                    log.error("No previously CashOut Corresponding To PTN");
+                    throw new CustomException("No previously CashOut Corresponding To PTN", HttpStatus.NOT_ACCEPTABLE);
+                }
+
+                request.configWithPaymentCommand(airtimeCmd);
                 s3pAirtimeTopup(request, airtimeCmd);
                 return request.getRequestId().toString();
             }
             throw new CustomException("Server Unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         } catch (ApiException e) {
-            log.error(e.getMessage());
+            log.error(e.getResponseBody());
             throw new CustomException("An Error During Airtime Topup", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
     private void s3pAirtimeTopup(Request request, AirtimePaymentCmd airtimeCmd) throws ApiException {
-        Set<Service> services = Constants.services;
-        Integer sourceServiceId = services.stream()
+        Set<Service> services = Constants.SERVICES;
+        Integer destinationServiceId = services.stream()
                 .filter(service -> service.getType() == Service.TypeEnum.TOPUP &&
                         service.getTitle().toLowerCase().contains(airtimeCmd.getDestination().toLowerCase()))
                 .mapToInt(Service::getServiceid).findFirst()
@@ -60,7 +64,7 @@ public class AirtimeServiceImpl implements AirtimeService {
                     log.error("No Service with name {}.",airtimeCmd.getDestination());
                     return new CustomException("No Service with the given name", HttpStatus.BAD_REQUEST);
                 });
-        Topup topup = collectionApi.topupGet(sourceServiceId).get(0);
+        Topup topup = collectionApi.topupGet(destinationServiceId).get(0);
         topup.setAmountLocalCur(airtimeCmd.getAmount());
         log.info("Initiating Quote Request for Topup");
         QuoteRequest quoteRequest = new QuoteRequest();
@@ -72,10 +76,10 @@ public class AirtimeServiceImpl implements AirtimeService {
         log.info("{}", offer);
         log.info("Initiating Collection for Topup");
         CollectionstdRequest collection = new CollectionstdRequest();
-        collection.setCustomerPhonenumber(phoneNumber);
+        collection.setCustomerPhonenumber(request.getSourceServiceNumber());
         collection.setCustomerEmailaddress(email);
         collection.setQuoteId(offer.getQuoteId());
-        collection.setServiceNumber("" + airtimeCmd.getDestinationServiceNumber());
+        collection.setServiceNumber(airtimeCmd.getDestinationServiceNumber());
         collection.setCustomerName("Lowe Florian");
         Collectionstd payment = collectionApi.collectstdPost(collection);
         log.info("Collection Successful");

@@ -1,11 +1,12 @@
 package com.maviance.easypay.controllers;
 
+import com.maviance.easypay.commands.CashInCommand;
 import com.maviance.easypay.services.interfaces.CashInService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
 
+@Api(value = "Cash-In")
 @RestController
 @RequestMapping(value = "/v1/cashin")
 public class CashInController {
@@ -15,8 +16,15 @@ public class CashInController {
         this.cashInService = cashInService;
     }
 
-    @PostMapping("/{cashOutPtn}")
+    @ApiOperation(value = "Reimburse an S3P Cash Out", response = String.class)
+    @PostMapping("/reimburse/{cashOutPtn}")
     public String reimburse(@PathVariable String cashOutPtn) {
-        return cashInService.reimburse(cashOutPtn);
+        return cashInService.s3pReimburse(cashOutPtn);
+    }
+
+    @ApiOperation(value = "Initiate an S3P Cash In", response = String.class)
+    @PostMapping("/{cashOutPtn}")
+    public String fundTransferCashIn(@RequestBody CashInCommand cashInCommand, @PathVariable String cashOutPtn) {
+        return cashInService.fundTransferCashIn(cashInCommand, cashOutPtn);
     }
 }

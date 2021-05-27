@@ -20,7 +20,11 @@ public class Checks {
             Ping ping = checksApi.pingGet();
             return ping != null;
         } catch (ApiException e) {
-            return false;
+            log.error(e.getResponseBody());
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
         }
+        return false;
+
     }
 }

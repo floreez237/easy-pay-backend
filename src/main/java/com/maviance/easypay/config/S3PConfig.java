@@ -61,7 +61,9 @@ public class S3PConfig {
         MasterdataApi masterdataApi = new MasterdataApi(apiClient);
         return args -> {
             if (checks.isS3pAvailable()) {
-                Constants.services.addAll(masterdataApi.serviceGet());
+                Constants.SERVICES.addAll(masterdataApi.serviceGet());
+                Constants.MERCHANTS.addAll(masterdataApi.merchantGet());
+                log.info("Services and Merchants Fetched");
             } else {
                 throw new RuntimeException("S3P is not available");
             }
