@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.maviance</groupId>
-    <artifactId>easy-pay</artifactId>
+    <artifactId>jus-</artifactId>
     <version>1.0.0</version>
     <name>easy-pay</name>
     <description>A Payment Service</description>
